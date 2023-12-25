@@ -1,13 +1,21 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AuthProviderProps, LogInParams, UserCreationRequest } from '../types';
 import * as userApi from '../api/user';
-import { getAccessToken, setAccessToken } from '../api/authToken';
+import { getAccessToken, setAccessToken, clearAccessToken } from '../api/authToken';
 import { useNavigate } from 'react-router-dom';
 
+/**
+ * Interface for authentication context in the application.
+ * - `logIn`: Function for user login. Takes `LogInParams` as an argument and returns a Promise resolving to void on 
+ *   successful login.
+ * - `logOut`: Function to log out the current user. Performs the logout operation without returning any value.
+ * - `registerNewUser`: Function for new user registration. Accepts a `UserCreationRequest` and returns a Promise resolving to 
+ *   void on successful registration.
+ */
 interface AuthContextType {
   logIn: (params: LogInParams) => Promise<void>;
   logOut: () => void;
-  register: (request: UserCreationRequest) => Promise<void>;
+  registerNewUser: (request: UserCreationRequest) => Promise<void>;
 }
 
 /**
@@ -16,7 +24,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   logIn: async () => { },
   logOut: () => { },
-  register: async () => { }
+  registerNewUser: async () => { }
 });
 
 /**
@@ -38,22 +46,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    */
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = getAccessToken();
-      if (!token) {
-        // Attempt to refresh token
-        try {
-          const newAccessToken = await userApi.refreshToken();
-          setAccessToken(newAccessToken);
-        } catch (error) {
-          console.error('Error refreshing token:', error);
-          setAccessToken(null); // Ensure no invalid token is present
+      try {
+        const token = getAccessToken();
+        if (!token) {
+          try {
+            const newAccessToken = await userApi.refreshToken();
+            setAccessToken(newAccessToken);
+          } catch (error: any) {
+            console.error('Error refreshing token:', error);
+            clearAccessToken(); // Ensure no invalid token is present
+            if (error.response && error.response.status === 401) {
+              // Refresh token is also expired or invalid
+              navigate('/login');
+            } else {
+              console.error('Error refreshing token:', error);
+            }
+          }
         }
+      } catch (error) {
+        console.error('Unhandled error during auth initialization:', error);
+      } finally {
+        setIsInitialized(true); // Set initialized to true regardless of token refresh outcome
       }
-      setIsInitialized(true);
     };
 
     initializeAuth();
-  }, []);
+  }, [navigate]);
+
 
   /**
    * Log the user in.
@@ -61,7 +80,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    */
   const logIn = async (params: LogInParams) => {
     const token = await userApi.logIn(params);
-    console.log('token received from login', token);
     setAccessToken(token);
   };
 
@@ -75,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Logout failed:', error);
     }
-    setAccessToken(null); // Clear the access token
+    clearAccessToken(); // Clear the access token
     navigate('/login'); // Redirect to login page
   };
 
@@ -83,9 +101,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * Register a new user.
    * @param request The user creation request.
    */
-  const register = async (request: UserCreationRequest) => {
+  const registerNewUser = async (request: UserCreationRequest) => {
     const token = await userApi.registerUser(request);
-    console.log('token received from register', token);
     setAccessToken(token);
   };
 
@@ -96,7 +113,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value = {
     logIn,
     logOut,
-    register
+    registerNewUser
   };
 
   return (

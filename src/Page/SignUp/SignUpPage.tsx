@@ -39,7 +39,7 @@ type RegisterInput = TypeOf<typeof registerSchema>;
  */
 const SignUpPage = () => {
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const { registerNewUser } = useAuth();
   const navigate = useNavigate();
 
   const methods = useForm<RegisterInput>({
@@ -76,7 +76,7 @@ const SignUpPage = () => {
         levelId: 1,
         isNewUser: true,
       }
-      await register(userCreationRequest as UserCreationRequest);
+      await registerNewUser(userCreationRequest as UserCreationRequest);
       // Handle successful registration, such as redirecting to a login page
       navigate('/mypage'); // Redirect to MyPage on successful registration
     } catch (error) {

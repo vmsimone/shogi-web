@@ -58,7 +58,6 @@ export const deleteUser = async (id: number) => {
  */
 export const registerUser = async (request: UserCreationRequest): Promise<string> => {
   const response = await axios.post<{ access_token: string }>(`${process.env.endpoint}${authPath}/register`, request, { withCredentials: true });
-  console.log(response.data);
   return response.data['access_token'];
 };
 
@@ -69,7 +68,6 @@ export const registerUser = async (request: UserCreationRequest): Promise<string
  */
 export const logIn = async (params: LogInParams): Promise<string> => { // Returns access token
   const response = await axios.post<{ access_token: string }>(`${process.env.endpoint}${authPath}/authenticate`, params, { withCredentials: true });
-  console.log(response.data);
   return response.data['access_token'];
 };
 
@@ -78,8 +76,17 @@ export const logIn = async (params: LogInParams): Promise<string> => { // Return
  * @returns The new access token.
  */
 export const refreshToken = async (): Promise<string> => { // Returns access token
-  const response = await axios.post<{ access_token: string }>(`${process.env.endpoint}${authPath}/refresh-token`, {}, { withCredentials: true });
-  return response.data['access_token'];
+  try {
+    const response = await axios.post<{ access_token: string }>(
+      `${process.env.endpoint}${authPath}/refresh-token`,
+      {},
+      { withCredentials: true }
+    );
+    return response.data['access_token'];
+  } catch (error) {
+    // If there is an error, we throw it to be caught by the interceptor's catch block
+    throw error;
+  }
 };
 
 /**
@@ -87,9 +94,7 @@ export const refreshToken = async (): Promise<string> => { // Returns access tok
  * @returns The current user's information.
  */
 export const getUserInfo = async (): Promise<User> => {
-  console.log('getUserInfo called');
   const response = await axios.get<User>(`${process.env.endpoint}${userPath}/info`);
-  console.log('getUserInfo response data', response.data);
   return response.data;
 }
 

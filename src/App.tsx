@@ -8,7 +8,6 @@ import { AuthProvider } from './Context/AuthContext';
  * The main App component that sets up the app's routing and authentication context.
  */
 const App: FC = () => {
-  console.log('App');
   return (
     <BrowserRouter>
       <AuthProvider>

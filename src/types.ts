@@ -77,42 +77,6 @@ export interface User {
 }
 
 /**
- * A tournament in the system.
- */
-export interface Tournament {
-  id: number;
-  name: string;
-  date: string;
-  place: string;
-  descrption: string;
-  url: string;
-  participants: User[];
-  matches: Match[];
-  rules: TournamentRule[];
-}
-
-/**
- * A match in a tournament.
- */
-export interface Match {
-  id: number;
-  player1: User;
-  player2: User;
-  winnder: User;
-}
-
-/**
- * A rule for a tournament.
- */
-export interface TournamentRule {
-  id: number;
-  name: string;
-  description: string;
-  timeLimit: number;
-  byoyomi: number;
-}
-
-/**
  * The props for the authentication provider component.
  */
 export interface AuthProviderProps {
