@@ -4,3 +4,7 @@
 	--light: #f6e1b5;
 	--emphasis: rgb(150, 20, 20);
 }
+
+body {
+    background-color: var(--dark);
+}
