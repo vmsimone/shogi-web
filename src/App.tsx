@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import NarBar from './Component/NavBar/NavBar'
 import RouteList from './RouteList';
 import { AuthProvider } from './Context/AuthContext';
+import './App.css';
 
 /**
  * The main App component that sets up the app's routing and authentication context.
